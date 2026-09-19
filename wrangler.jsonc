@@ -1,0 +1,5 @@
+{
+  "name": "cloud-music-proxy",
+  "main": "worker/worker.js",
+  "compatibility_date": "2026-09-18"
+}
