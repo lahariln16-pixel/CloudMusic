@@ -1,0 +1,4 @@
+node_modules/
+.wrangler/
+sophos-ca-bundle.pem
+app.js.backup
