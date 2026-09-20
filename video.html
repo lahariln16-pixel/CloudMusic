@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cloud Video</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="video-page">
+
+        <header class="video-header">
+            <div>
+                <h1>Cloud Video</h1>
+                <p>Your Google Drive video library</p>
+            </div>
+
+            <a href="index.html" class="video-back">
+                🎵 Cloud Music
+            </a>
+        </header>
+
+        <section class="video-player-card">
+
+            <video id="videoPlayer" controls playsinline></video>
+
+            <div class="video-now-playing">
+                <h2 id="videoTitle">Select a video</h2>
+                <p id="videoFilename">No video selected</p>
+            </div>
+
+        </section>
+
+        <div class="video-tools">
+
+            <input
+                type="text"
+                id="videoSearch"
+                placeholder="Search your videos..."
+                autocomplete="off"
+            >
+
+        </div>
+
+        <section class="video-list" id="videoList">
+
+            <div class="video-loading">
+                Loading videos...
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="video.js"></script>
+
+</body>
+</html>
