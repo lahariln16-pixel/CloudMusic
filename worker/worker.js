@@ -1,5 +1,6 @@
 const MUSIC_FOLDER_ID = "1CNDhtkIoLf3VA-LP1PsWr3Lw9zxwD7vM";
 const VIDEO_FOLDER_ID = "1Dsk4udZgNny-ZsROcLrIsGOoWSG9NmJa";
+const GALLERY_FOLDER_ID = "1fC5zqm6oENDHbG-emZ-JtCAFyyTSzqrj";
 
 const ALLOWED_ORIGIN = "*";
 
@@ -22,7 +23,6 @@ async function listDriveFiles(folderId, extensions) {
 
   const files = [];
   const seen = new Set();
-
   const extensionPattern = extensions.join("|");
 
   const regex = new RegExp(
@@ -69,6 +69,13 @@ async function listVideos() {
   return await listDriveFiles(
     VIDEO_FOLDER_ID,
     ["mp4", "webm", "mov", "mkv", "m4v"]
+  );
+}
+
+async function listGallery() {
+  return await listDriveFiles(
+    GALLERY_FOLDER_ID,
+    ["jpg", "jpeg", "png", "webp", "gif", "bmp"]
   );
 }
 
@@ -124,67 +131,45 @@ export default {
       });
     }
 
-    /* MUSIC LIST */
     if (url.pathname === "/list") {
-      try {
-        const songs = await listSongs();
+      const songs = await listSongs();
 
-        return new Response(JSON.stringify(songs), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            ...corsHeaders(),
-            "Cache-Control": "no-cache"
-          }
-        });
-      } catch (error) {
-        return new Response(
-          JSON.stringify({
-            error: "Could not read Google Drive music folder",
-            details: String(error)
-          }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders()
-            }
-          }
-        );
-      }
+      return new Response(JSON.stringify(songs), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          ...corsHeaders(),
+          "Cache-Control": "no-cache"
+        }
+      });
     }
 
-    /* VIDEO LIST */
     if (url.pathname === "/videos") {
-      try {
-        const videos = await listVideos();
+      const videos = await listVideos();
 
-        return new Response(JSON.stringify(videos), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            ...corsHeaders(),
-            "Cache-Control": "no-cache"
-          }
-        });
-      } catch (error) {
-        return new Response(
-          JSON.stringify({
-            error: "Could not read Google Drive video folder",
-            details: String(error)
-          }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders()
-            }
-          }
-        );
-      }
+      return new Response(JSON.stringify(videos), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          ...corsHeaders(),
+          "Cache-Control": "no-cache"
+        }
+      });
     }
 
-    /* MEDIA STREAMING */
+    if (url.pathname === "/gallery") {
+      const images = await listGallery();
+
+      return new Response(JSON.stringify(images), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          ...corsHeaders(),
+          "Cache-Control": "no-cache"
+        }
+      });
+    }
+
     const fileId = url.searchParams.get("id");
 
     if (!fileId) {
