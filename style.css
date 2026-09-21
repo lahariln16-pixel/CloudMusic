@@ -1015,3 +1015,34 @@ button {
     }
 }
 
+
+/* CLOUD MUSIC / VIDEO NAVIGATION */
+
+.cloud-nav {
+    width: min(1100px, 92%);
+    margin: 18px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    z-index: 100;
+}
+
+.cloud-nav a {
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    padding: 10px 18px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    transition: 0.2s;
+}
+
+.cloud-nav a:hover {
+    background: rgba(255,255,255,0.15);
+}
+
+.cloud-nav a.active {
+    background: rgba(139,92,246,0.3);
+}
+
