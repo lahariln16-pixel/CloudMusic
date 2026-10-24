@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const API = "https://cloud-music-proxy.cloudmusiclahari.workers.dev";
+  const API = "https://cloud-music-proxy.mylahari.workers.dev";
   const CATEGORY_KEY = "cloudmusic-culture-categories-v1";
   const ASSIGNMENT_KEY = "cloudmusic-culture-assignments-v1";
   const $ = id => document.getElementById(id);

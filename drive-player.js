@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const API = "https://cloud-music-proxy.cloudmusiclahari.workers.dev";
+  const API = "https://cloud-music-proxy.mylahari.workers.dev";
   const audio = new Audio();
   let songs = [];
   let filtered = [];
