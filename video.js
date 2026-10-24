@@ -1,5 +1,5 @@
 const API =
-    "https://cloud-music-proxy.cloudmusiclahari.workers.dev";
+    "https://cloud-music-proxy.mylahari.workers.dev";
 
 const videoPlayer = document.querySelector("#videoPlayer");
 const videoTitle = document.querySelector("#videoTitle");
