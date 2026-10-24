@@ -91,8 +91,15 @@
   async function loadSongs() {
     status.textContent = "Loading your Google Drive songs…";
     try {
-      const response = await fetch(API + "/list");
-      if (!response.ok) throw new Error("Worker returned HTTP " + response.status);
+      const response = await fetch(API + "/list", { cache: "no-store" });
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const payload = await response.json();
+          detail = payload.detail || payload.error || "";
+        } catch (_) {}
+        throw new Error(detail || ("Worker returned HTTP " + response.status));
+      }
       const data = await response.json();
       if (!Array.isArray(data)) throw new Error("Unexpected library response");
       songs = data.filter(s => s && s.id).map(s => ({...s, title: s.title || s.name || "Untitled", artist: s.artist || "Unknown artist"}));
@@ -101,7 +108,7 @@
       if (songs.length) selectSong(0);
       render();
     } catch (e) {
-      status.textContent = "Could not load Drive songs. Check the CloudMusic Worker connection and try Refresh library.";
+      status.textContent = "Google Drive failed to load: " + (e?.message || "Unknown error") + ". Check that the Drive folder is shared publicly, then press Refresh library.";
       count.textContent = "Library unavailable";
       console.error("CloudMusic Drive library:", e);
     }
