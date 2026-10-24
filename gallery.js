@@ -1,5 +1,5 @@
 const API =
-    "https://cloud-music-proxy.cloudmusiclahari.workers.dev";
+    "https://cloud-music-proxy.mylahari.workers.dev";
 
 const GALLERY_TOKEN_KEY =
     "cloud_music_gallery_token";
