@@ -451,6 +451,26 @@
 </div>
 </section>
 </div>
+<!-- External music discovery powered by Audius -->
+<section id="audius-discover" class="flex flex-col gap-space-md pt-space-lg">
+  <div class="flex flex-wrap items-end justify-between gap-space-md">
+    <div>
+      <p class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">DISCOVER MUSIC</p>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Explore Audius</h2>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">Search and stream independent artists from the Audius catalog.</p>
+    </div>
+    <span class="text-xs text-on-surface-variant rounded-full bg-surface-container px-3 py-1">Powered by Audius</span>
+  </div>
+  <form id="audius-search-form" class="flex flex-wrap gap-space-sm">
+    <input id="audius-search-input" class="flex-1 min-w-[220px] h-11 px-4 rounded-full bg-surface-container-high text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary" type="search" placeholder="Search songs or artists…" autocomplete="off">
+    <button class="px-5 py-2 rounded-full bg-primary-container text-on-primary-fixed font-label-md" type="submit">Search</button>
+    <button id="audius-trending-button" class="px-5 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md" type="button">Trending</button>
+  </form>
+  <p id="audius-status" class="text-body-sm text-on-surface-variant" role="status">Loading trending music…</p>
+  <div id="audius-results" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-space-md"></div>
+  <p class="text-xs text-on-surface-variant">Audius tracks are streamed from their source. Availability and playback permissions are controlled by each track and its creator.</p>
+</section>
+
 <!-- Personal Google Drive library, connected to the existing CloudMusic Worker -->
 <section id="drive-library" class="flex flex-col gap-space-md pt-space-lg">
   <div class="flex flex-wrap items-end justify-between gap-space-md">
@@ -486,4 +506,5 @@
 
 <script src="culture-manager.js"></script>
 <script src="drive-player.js"></script>
+<script src="audius-discovery.js"></script>
 </body></html>
