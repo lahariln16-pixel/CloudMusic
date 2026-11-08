@@ -15,7 +15,7 @@ function json(data, status = 200) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (request.method === "OPTIONS") return json({}, 204);
+    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, OPTIONS", "access-control-allow-headers": "Content-Type" } });
     if (request.method !== "GET") return json({ error: "Method not allowed." }, 405);
     if (url.pathname !== "/search") return json({ error: "Not found. Use /search?q=SONG." }, 404);
     if (!env.YOUTUBE_API_KEY) {
