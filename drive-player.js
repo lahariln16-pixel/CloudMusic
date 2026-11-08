@@ -5,6 +5,7 @@
   let songs = [];
   let filtered = [];
   let currentIndex = -1;
+  let externalCurrent = null;
   let shuffle = false;
   let repeat = false;
   let muted = false;
@@ -28,7 +29,11 @@
     if (!Number.isFinite(value) || value < 0) return "0:00";
     return Math.floor(value / 60) + ":" + String(Math.floor(value % 60)).padStart(2, "0");
   }
-  function trackUrl(song) { return API + "/?id=" + encodeURIComponent(song.id); }
+  function trackUrl(song) {
+    return song.source === "audius"
+      ? API + "/audius/stream?id=" + encodeURIComponent(song.id)
+      : API + "/?id=" + encodeURIComponent(song.id);
+  }
   function render() {
     filtered = songs.filter(s => (s.title + " " + (s.artist || "")).toLowerCase().includes((search?.value || "").trim().toLowerCase()));
     count.textContent = filtered.length + (filtered.length === 1 ? " song" : " songs");
@@ -61,6 +66,7 @@
   function selectSong(index) {
     if (!songs.length) return false;
     currentIndex = (index + songs.length) % songs.length;
+    externalCurrent = null;
     const song = songs[currentIndex];
     audio.src = trackUrl(song);
     $("drive-player-title").textContent = song.title || "Untitled";
@@ -80,7 +86,30 @@
       catch (e) { status.textContent = "Playback could not start. Check that the CloudMusic Worker can stream this Drive file."; console.error(e); }
     }
   }
+  function playExternal(track) {
+    if (!track || !track.id) return;
+    externalCurrent = track;
+    currentIndex = -1;
+    audio.src = trackUrl({ ...track, source: "audius" });
+    $("drive-player-title").textContent = track.title || "Untitled";
+    $("drive-player-artist").textContent = (track.artist || "Unknown artist") + " · Audius";
+    const art = track.artwork || "";
+    $("drive-player-art").innerHTML = art
+      ? '<img src="' + escapeHTML(art) + '" alt="" class="w-full h-full object-cover rounded-lg">'
+      : '<span class="material-symbols-outlined text-2xl">music_note</span>';
+    fill.style.width = "0%";
+    currentTime.textContent = "0:00";
+    duration.textContent = "0:00";
+    updateFavorite();
+    audio.play().catch(error => {
+      status.textContent = "Audius playback could not start: " + (error?.message || "Playback error");
+      console.error(error);
+    });
+  }
+  window.CloudMusicPlayer = { playExternal };
+
   function next() {
+    if (externalCurrent) { if (songs.length) playSong(0, true); return; }
     if (!songs.length) return;
     let index = currentIndex + 1;
     if (shuffle && songs.length > 1) {
@@ -121,6 +150,7 @@
     } else audio.pause();
   });
   $("drive-player-prev")?.addEventListener("click", () => {
+    if (externalCurrent) { audio.currentTime = 0; return; }
     if (!songs.length) return;
     if (audio.currentTime > 3) { audio.currentTime = 0; return; }
     playSong((currentIndex - 1 + songs.length) % songs.length, true);
