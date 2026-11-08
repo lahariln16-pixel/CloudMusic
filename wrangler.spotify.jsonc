@@ -1,0 +1,6 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cloudmusic-spotify",
+  "main": "worker/spotify-worker.js",
+  "compatibility_date": "2026-11-08"
+}
