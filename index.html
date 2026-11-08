@@ -471,24 +471,24 @@
   <p class="text-xs text-on-surface-variant">Audius tracks are streamed from their source. Availability and playback permissions are controlled by each track and its creator.</p>
 </section>
 
-<!-- Official music video discovery powered by YouTube Data API -->
-<section id="youtube-discover" class="flex flex-col gap-space-md pt-space-lg">
+<!-- Official music video discovery powered by utop Data API -->
+<section id="utop-discover" class="flex flex-col gap-space-md pt-space-lg">
   <div class="flex flex-wrap items-end justify-between gap-space-md">
     <div>
       <p class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">OFFICIAL MUSIC CATALOG</p>
-      <h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Find original songs on YouTube</h2>
-      <p class="font-body-md text-body-md text-on-surface-variant mt-1">Search official music videos and play them using YouTube's embedded player.</p>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Find original songs with Utop</h2>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">Find music and play it using Utop's embedded player.</p>
     </div>
-    <span class="text-xs text-on-surface-variant rounded-full bg-surface-container px-3 py-1">YouTube</span>
+    <span class="text-xs text-on-surface-variant rounded-full bg-surface-container px-3 py-1">utop</span>
   </div>
-  <form id="youtube-search-form" class="flex flex-wrap gap-space-sm">
-    <input id="youtube-search-input" class="flex-1 min-w-[220px] h-11 px-4 rounded-full bg-surface-container-high text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary" type="search" placeholder="Search original song or artist…" autocomplete="off">
-    <button class="px-5 py-2 rounded-full bg-primary-container text-on-primary-fixed font-label-md" type="submit">Search YouTube</button>
+  <form id="utop-search-form" class="flex flex-wrap gap-space-sm">
+    <input id="utop-search-input" class="flex-1 min-w-[220px] h-11 px-4 rounded-full bg-surface-container-high text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary" type="search" placeholder="Search original song or artist…" autocomplete="off">
+    <button class="px-5 py-2 rounded-full bg-primary-container text-on-primary-fixed font-label-md" type="submit">Search utop</button>
   </form>
-  <p id="youtube-status" class="text-body-sm text-on-surface-variant" role="status">Search for an original song or artist.</p>
-  <div id="youtube-player" class="hidden overflow-hidden rounded-xl bg-black aspect-video"></div>
-  <div id="youtube-results" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-space-md"></div>
-  <p class="text-xs text-on-surface-variant">Videos play through YouTube's official embed. Availability, ads, and playback permissions are controlled by YouTube and each uploader.</p>
+  <p id="utop-status" class="text-body-sm text-on-surface-variant" role="status">Search for an original song or artist.</p>
+  <div id="utop-player" class="hidden overflow-hidden rounded-xl bg-black aspect-video"></div>
+  <div id="utop-results" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-space-md"></div>
+  <p class="text-xs text-on-surface-variant">Utop plays selected videos in its embedded player. Availability, ads, and playback permissions are controlled by utop and each uploader.</p>
 </section>
 
 <!-- Personal Google Drive library, connected to the existing CloudMusic Worker -->
@@ -527,5 +527,5 @@
 <script src="culture-manager.js"></script>
 <script src="drive-player.js"></script>
 <script src="audius-discovery.js"></script>
-<script src="youtube-discovery.js"></script>
+<script src="utop-discovery.js"></script>
 </body></html>
