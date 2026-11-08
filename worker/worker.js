@@ -205,7 +205,7 @@ function oauthHeaders(request, extra = {}) {
     "Access-Control-Allow-Origin": allowed,
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Vary": "Origin",
     ...extra
   };
@@ -231,7 +231,8 @@ function cookieValue(request, name) {
 }
 
 async function driveSession(request, env) {
-  const session = cookieValue(request, "cm_drive_session");
+  const authorization = request.headers.get("Authorization") || "";
+        const session = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
   if (!session || !env.DRIVE_OAUTH) return false;
   return !!(await env.DRIVE_OAUTH.get("session:" + session));
 }
@@ -362,9 +363,9 @@ export default {
         return new Response(null, {
           status: 302,
           headers: {
-            Location: DRIVE_APP_ORIGIN + "/?drive=connected",
-            "Set-Cookie": "cm_drive_session=" + session + "; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=2592000",
-            "Cache-Control": "no-store"
+            Location: DRIVE_APP_ORIGIN + "/?drive=connected#drive_session=" + session,
+            "Cache-Control": "no-store",
+            "Referrer-Policy": "no-referrer"
           }
         });
       }
@@ -375,7 +376,7 @@ export default {
         const session = cookieValue(request, "cm_drive_session");
         if (session) await env.DRIVE_OAUTH.delete("session:" + session);
         return new Response(JSON.stringify({ connected: false }), {
-          headers: { "Content-Type": "application/json", "Set-Cookie": "cm_drive_session=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0", ...oauthHeaders(request) }
+          headers: { "Content-Type": "application/json", ...oauthHeaders(request) }
         });
       }
       if (url.pathname === "/save" && request.method === "POST") {
