@@ -142,6 +142,36 @@ async function listGallery() {
   return await listDriveFiles(GALLERY_FOLDER_ID, ["jpg", "jpeg", "png", "webp", "gif", "bmp"]);
 }
 
+
+async function audiusRequest(path) {
+  const response = await fetch(`https://api.audius.co/v1${path}`, {
+    headers: { "Accept": "application/json" },
+    redirect: "follow"
+  });
+  if (!response.ok) throw new Error(`Audius returned HTTP ${response.status}`);
+  return await response.json();
+}
+
+async function streamAudiusTrack(request, trackId) {
+  const streamUrl = new URL(`https://api.audius.co/v1/tracks/${encodeURIComponent(trackId)}/stream`);
+  streamUrl.searchParams.set("app_name", "CloudMusic");
+  const headers = new Headers();
+  const range = request.headers.get("Range");
+  if (range) headers.set("Range", range);
+  const upstream = await fetch(streamUrl, { headers, redirect: "follow" });
+  if (!upstream.ok) {
+    return jsonResponse({ error: "Audius stream unavailable", detail: `HTTP ${upstream.status}` }, upstream.status);
+  }
+  const responseHeaders = new Headers(upstream.headers);
+  responseHeaders.set("Content-Type", upstream.headers.get("Content-Type") || "audio/mpeg");
+  responseHeaders.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  responseHeaders.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  responseHeaders.set("Access-Control-Allow-Headers", "Range, Content-Type, Authorization");
+  responseHeaders.set("Access-Control-Expose-Headers", "Content-Length, Content-Range, Accept-Ranges");
+  responseHeaders.set("Cross-Origin-Resource-Policy", "cross-origin");
+  return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
+}
+
 async function streamFile(request, fileId) {
   const driveUrl = `https://drive.google.com/uc?export=download&id=${encodeURIComponent(fileId)}`;
   const requestHeaders = new Headers();
@@ -175,12 +205,33 @@ export default {
       if (url.pathname === "/list") return jsonResponse(await listSongs());
       if (url.pathname === "/videos") return jsonResponse(await listVideos());
       if (url.pathname === "/gallery") return jsonResponse(await listGallery());
+      if (url.pathname === "/audius/search") {
+        const query = (url.searchParams.get("q") || "").trim();
+        if (!query) return jsonResponse({ data: [] });
+        const params = new URLSearchParams({ query, limit: "24" });
+        return jsonResponse(await audiusRequest(`/tracks/search?${params}`));
+      }
+      if (url.pathname === "/audius/trending") {
+        const params = new URLSearchParams({ limit: "24", time: "week" });
+        return jsonResponse(await audiusRequest(`/tracks/trending?${params}`));
+      }
     } catch (error) {
       console.error("CloudMusic Drive listing failed:", error);
       return jsonResponse({
         error: "Google Drive listing failed",
         detail: error instanceof Error ? error.message : "Unknown upstream error"
       }, 502);
+    }
+
+    if (url.pathname === "/audius/stream") {
+      const trackId = url.searchParams.get("id");
+      if (!trackId) return new Response("Missing Audius track ID", { status: 400, headers: corsHeaders() });
+      try {
+        return await streamAudiusTrack(request, trackId);
+      } catch (error) {
+        console.error("CloudMusic Audius stream failed:", error);
+        return jsonResponse({ error: "Audius stream failed", detail: error instanceof Error ? error.message : "Unknown error" }, 502);
+      }
     }
 
     const fileId = url.searchParams.get("id");
