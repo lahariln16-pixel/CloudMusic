@@ -7,7 +7,11 @@
 
   async function getStatus() {
     try {
-      const response = await fetch(API + "/oauth/status", { credentials: "include", cache: "no-store" });
+      const session = localStorage.getItem("cloudmusic-drive-session") || "";
+      const response = await fetch(API + "/oauth/status", {
+        headers: session ? { Authorization: "Bearer " + session } : {},
+        cache: "no-store"
+      });
       const data = await response.json();
       const connected = response.ok && data.connected === true;
       if (status) status.textContent = connected
@@ -27,8 +31,12 @@
     }
     const response = await fetch(API + "/save", {
       method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(localStorage.getItem("cloudmusic-drive-session")
+          ? { Authorization: "Bearer " + localStorage.getItem("cloudmusic-drive-session") }
+          : {})
+      },
       body: JSON.stringify(track)
     });
     const data = await response.json().catch(() => ({}));
@@ -42,6 +50,12 @@
   });
 
   window.CloudMusicDriveSave = { saveTrack, getStatus };
+  const fragment = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const returnedSession = fragment.get("drive_session");
+  if (returnedSession) {
+    localStorage.setItem("cloudmusic-drive-session", returnedSession);
+    window.history.replaceState({}, "", window.location.pathname + window.location.search);
+  }
   const params = new URLSearchParams(window.location.search);
   if (params.get("drive") === "connected") {
     if (status) status.textContent = "Google Drive connected successfully.";
