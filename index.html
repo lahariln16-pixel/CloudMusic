@@ -471,6 +471,26 @@
   <p class="text-xs text-on-surface-variant">Audius tracks are streamed from their source. Availability and playback permissions are controlled by each track and its creator.</p>
 </section>
 
+<!-- Spotify catalog search with official Spotify embed playback -->
+<section id="spotify-discover" class="flex flex-col gap-space-md pt-space-lg">
+  <div class="flex flex-wrap items-end justify-between gap-space-md">
+    <div>
+      <p class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">SPOTIFY CATALOG</p>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Explore Spotify</h2>
+      <p class="font-body-md text-body-md text-on-surface-variant mt-1">Search Spotify tracks and play them in Spotify's official embedded player.</p>
+    </div>
+    <span class="text-xs text-on-surface-variant rounded-full bg-surface-container px-3 py-1">Spotify</span>
+  </div>
+  <form id="spotify-search-form" class="flex flex-wrap gap-space-sm">
+    <input id="spotify-search-input" class="flex-1 min-w-[220px] h-11 px-4 rounded-full bg-surface-container-high text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary" type="search" placeholder="Search Spotify songs or artists…" autocomplete="off">
+    <button class="px-5 py-2 rounded-full bg-primary-container text-on-primary-fixed font-label-md" type="submit">Search Spotify</button>
+  </form>
+  <p id="spotify-status" class="text-body-sm text-on-surface-variant" role="status">Search Spotify's music catalog.</p>
+  <div id="spotify-player" class="hidden overflow-hidden rounded-xl bg-black"></div>
+  <div id="spotify-results" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-space-md"></div>
+  <p class="text-xs text-on-surface-variant">Playback is provided by Spotify's official player. Spotify account, regional, and track restrictions may apply.</p>
+</section>
+
 <!-- Official music video discovery powered by utop Data API -->
 <section id="utop-discover" class="flex flex-col gap-space-md pt-space-lg">
   <div class="flex flex-wrap items-end justify-between gap-space-md">
@@ -528,4 +548,5 @@
 <script src="drive-player.js"></script>
 <script src="audius-discovery.js"></script>
 <script src="utop-discovery.js"></script>
+<script src="spotify-discovery.js"></script>
 </body></html>
