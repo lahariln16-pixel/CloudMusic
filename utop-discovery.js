@@ -32,8 +32,9 @@
           </div>
           <span class="block text-sm font-semibold text-on-surface line-clamp-2">${escapeHTML(video.title || "Untitled video")}</span>
           <span class="block truncate text-xs text-on-surface-variant mt-1">${escapeHTML(video.channelTitle || "Utop channel")}</span>
-        </button>`;
-      card.querySelector(".utop-play").addEventListener("click", () => {
+        </button>
+        <button type="button" class="utop-save mt-3 w-full rounded-full bg-surface-container-high hover:bg-primary-container px-3 py-2 text-xs font-semibold text-on-surface hover:text-on-primary-fixed transition-colors">Save details to Drive</button>`;
+      card.querySelector(".utop-save").addEventListener("click", async event => {\n        const button = event.currentTarget;\n        button.disabled = true;\n        button.textContent = "Saving…";\n        try {\n          if (!window.CloudMusicDriveSave) throw new Error("Drive save feature is not ready. Refresh the page.");\n          await window.CloudMusicDriveSave.saveTrack({\n            source: "Utop",\n            id: video.id,\n            title: video.title || "Untitled video",\n            artist: video.channelTitle || "Unknown artist",\n            sourceUrl: "https://www.youtube.com/watch?v=" + encodeURIComponent(video.id),\n            artwork: video.thumbnail || ""\n          });\n          button.textContent = "Saved to Drive ✓";\n        } catch (error) {\n          button.textContent = "Save details to Drive";\n          status.textContent = error.message || "Could not save to Drive.";\n        } finally { button.disabled = false; }\n      });\n      card.querySelector(".utop-play").addEventListener("click", () => {
         player.classList.remove("hidden");
         player.innerHTML = '<iframe class="w-full h-full aspect-video" src="https://www.youtube-nocookie.com/embed/' +
           encodeURIComponent(video.id) +
