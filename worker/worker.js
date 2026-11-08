@@ -373,7 +373,8 @@ export default {
         return oauthJson(request, { connected: await driveSession(request, env) });
       }
       if (url.pathname === "/oauth/disconnect" && request.method === "POST") {
-        const session = cookieValue(request, "cm_drive_session");
+        const authorization = request.headers.get("Authorization") || "";
+        const session = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
         if (session) await env.DRIVE_OAUTH.delete("session:" + session);
         return new Response(JSON.stringify({ connected: false }), {
           headers: { "Content-Type": "application/json", ...oauthHeaders(request) }
