@@ -2,10 +2,10 @@
   "use strict";
   const API = "https://cloudmusic-utop.mylahari.workers.dev";
   const $ = id => document.getElementById(id);
-  const form = $("youtube-search-form");
-  const input = $("youtube-search-input");
-  const results = $("youtube-results");
-  const status = $("youtube-status");
+  const form = $("utop-search-form");
+  const input = $("utop-search-input");
+  const results = $("utop-results");
+  const status = $("utop-status");
   const player = $("utop-player");
 
   function escapeHTML(value) {
