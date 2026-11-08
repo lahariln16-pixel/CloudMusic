@@ -1,6 +1,6 @@
 (() => {
   "use strict";
-  const API = "https://cloud-music-proxy.mylahari.workers.dev";
+  const API = "https://cloudmusic-audius.mylahari.workers.dev";
   const $ = id => document.getElementById(id);
   const form = $("audius-search-form");
   const input = $("audius-search-input");
@@ -18,7 +18,7 @@
     return image["480x480"] || image["150x150"] || image["1000x1000"] || "";
   }
   function artistName(track) {
-    return track?.user?.name || track?.user?.handle || track?.artist || "Unknown artist";
+    return track?.artist || track?.user?.name || track?.user?.handle || "Unknown artist";
   }
   function render(tracks) {
     results.innerHTML = "";
@@ -56,6 +56,7 @@
     });
     status.textContent = playable.length + " playable track" + (playable.length === 1 ? "" : "s") + " · Audius";
   }
+
   async function load(path, label) {
     status.textContent = label;
     results.innerHTML = "";
@@ -69,12 +70,13 @@
       console.error("CloudMusic Audius discovery:", error);
     }
   }
+
   form?.addEventListener("submit", event => {
     event.preventDefault();
     const query = input.value.trim();
-    if (!query) return load("/audius/trending", "Loading trending music…");
-    load("/audius/search?q=" + encodeURIComponent(query), "Searching Audius…");
+    if (!query) return load("/trending", "Loading trending music…");
+    load("/search?q=" + encodeURIComponent(query), "Searching Audius…");
   });
-  trendingButton?.addEventListener("click", () => load("/audius/trending", "Loading trending music…"));
-  load("/audius/trending", "Loading trending music…");
+  trendingButton?.addEventListener("click", () => load("/trending", "Loading trending music…"));
+  load("/trending", "Loading trending music…");
 })();

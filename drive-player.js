@@ -1,6 +1,7 @@
 (() => {
   "use strict";
   const API = "https://cloud-music-proxy.mylahari.workers.dev";
+  const AUDIO_API = "https://cloudmusic-audius.mylahari.workers.dev";
   const audio = new Audio();
   let songs = [];
   let filtered = [];
@@ -31,7 +32,7 @@
   }
   function trackUrl(song) {
     return song.source === "audius"
-      ? API + "/audius/stream?id=" + encodeURIComponent(song.id)
+      ? AUDIO_API + "/stream?id=" + encodeURIComponent(song.id)
       : API + "/?id=" + encodeURIComponent(song.id);
   }
   function render() {
