@@ -497,8 +497,8 @@
     <div><p class="font-label-sm text-label-sm uppercase tracking-wider text-primary font-bold">YOUR CLOUD LIBRARY</p><h2 class="font-headline-lg text-headline-lg text-on-surface mt-1">Your Google Drive music</h2><p class="font-body-md text-body-md text-on-surface-variant mt-1">Your own tracks, streamed from your connected CloudMusic library.</p></div>
     <span id="drive-song-count" class="font-body-sm text-body-sm text-on-surface-variant">Connecting to Drive…</span>
   </div>
-  <div class="flex flex-wrap gap-space-sm"><input id="drive-library-search" class="flex-1 min-w-[220px] h-11 px-4 rounded-full bg-surface-container-high text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary" type="search" placeholder="Search your Drive songs…" autocomplete="off"><button id="drive-refresh" class="px-4 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md" type="button">↻ Refresh library</button></div>
-  <div id="drive-library-status" class="rounded-xl bg-surface-container p-space-md text-on-surface-variant" role="status">Loading your Google Drive songs…</div><div id="drive-library-list" class="flex flex-col divide-y divide-outline-variant/20"></div>
+  <div class="flex flex-wrap gap-space-sm"><button id="drive-connect" class="px-4 py-2 rounded-full bg-primary-container text-on-primary-fixed font-label-md" type="button">Connect Google Drive</button><input id="drive-library-search" class="flex-1 min-w-[220px] h-11 px-4 rounded-full bg-surface-container-high text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:ring-1 focus:ring-primary" type="search" placeholder="Search your Drive songs…" autocomplete="off"><button id="drive-refresh" class="px-4 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md" type="button">↻ Refresh library</button></div>
+  <div id="drive-oauth-status" class="text-body-sm text-on-surface-variant" role="status">Connect Google Drive to save song details and links.</div><div id="drive-library-status" class="rounded-xl bg-surface-container p-space-md text-on-surface-variant" role="status">Loading your Google Drive songs…</div><div id="drive-library-list" class="flex flex-col divide-y divide-outline-variant/20"></div>
 </section>
 <script>
   // Interactive Language Pill Filter selection logic
@@ -526,6 +526,7 @@
 
 <script src="culture-manager.js"></script>
 <script src="drive-player.js"></script>
+<script src="cloudmusic-drive-save.js"></script>
 <script src="audius-discovery.js"></script>
 <script src="utop-discovery.js"></script>
 </body></html>

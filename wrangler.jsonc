@@ -1,5 +1,11 @@
 {
   "name": "cloud-music-proxy",
   "main": "worker/worker.js",
-  "compatibility_date": "2026-09-18"
+  "compatibility_date": "2026-09-18",
+  "kv_namespaces": [
+    {
+      "binding": "DRIVE_OAUTH",
+      "id": "REPLACE_WITH_DRIVE_OAUTH_KV_NAMESPACE_ID"
+    }
+  ]
 }
