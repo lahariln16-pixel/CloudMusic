@@ -193,9 +193,204 @@ async function streamFile(request, fileId) {
   return new Response(driveResponse.body, { status: driveResponse.status, headers: responseHeaders });
 }
 
+
+const DRIVE_APP_ORIGIN = "https://cloudmusic-75y.pages.dev";
+const DRIVE_REDIRECT_URI = "https://cloud-music-proxy.mylahari.workers.dev/oauth/callback";
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+
+function oauthHeaders(request, extra = {}) {
+  const origin = request.headers.get("Origin");
+  const allowed = origin === DRIVE_APP_ORIGIN ? DRIVE_APP_ORIGIN : DRIVE_APP_ORIGIN;
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Vary": "Origin",
+    ...extra
+  };
+}
+
+function oauthJson(request, data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", ...oauthHeaders(request) }
+  });
+}
+
+function randomToken(bytes = 32) {
+  const data = new Uint8Array(bytes);
+  crypto.getRandomValues(data);
+  return [...data].map(value => value.toString(16).padStart(2, "0")).join("");
+}
+
+function cookieValue(request, name) {
+  const raw = request.headers.get("Cookie") || "";
+  const match = raw.split(";").map(part => part.trim()).find(part => part.startsWith(name + "="));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : "";
+}
+
+async function driveSession(request, env) {
+  const session = cookieValue(request, "cm_drive_session");
+  if (!session || !env.DRIVE_OAUTH) return false;
+  return !!(await env.DRIVE_OAUTH.get("session:" + session));
+}
+
+async function driveAccessToken(env) {
+  const refreshToken = await env.DRIVE_OAUTH.get("drive:refresh_token");
+  if (!refreshToken) throw new Error("Google Drive is not connected. Connect your account first.");
+  const body = new URLSearchParams({
+    client_id: env.GOOGLE_CLIENT_ID,
+    client_secret: env.GOOGLE_CLIENT_SECRET,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token"
+  });
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload.access_token) throw new Error("Google Drive token refresh failed. Reconnect your account.");
+  return payload.access_token;
+}
+
+async function driveApi(env, accessToken, path, options = {}) {
+  const response = await fetch("https://www.googleapis.com/drive/v3" + path, {
+    ...options,
+    headers: { Authorization: "Bearer " + accessToken, ...(options.headers || {}) }
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error?.message || "Google Drive API returned HTTP " + response.status);
+  return payload;
+}
+
+async function ensureDriveFolder(env, accessToken, name, parentId = "") {
+  const escaped = name.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  const query = ["name = '" + escaped + "'", "mimeType = 'application/vnd.google-apps.folder'", "trashed = false"];
+  if (parentId) query.push("'" + parentId + "' in parents");
+  const params = new URLSearchParams({ q: query.join(" and "), fields: "files(id,name)", pageSize: "10" });
+  const found = await driveApi(env, accessToken, "/files?" + params.toString());
+  if (found.files?.length) return found.files[0].id;
+  const created = await driveApi(env, accessToken, "/files?fields=id", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, mimeType: "application/vnd.google-apps.folder", ...(parentId ? { parents: [parentId] } : {}) })
+  });
+  return created.id;
+}
+
+async function saveSongMetadata(env, track) {
+  const accessToken = await driveAccessToken(env);
+  const root = await ensureDriveFolder(env, accessToken, "CloudMusic");
+  const source = track.source === "JioSaavn" ? "JioSaavn" : "Utop";
+  const folder = await ensureDriveFolder(env, accessToken, source, root);
+  const safeTitle = String(track.title || "Untitled song").replace(/[\\/:*?"<>|]/g, "_").slice(0, 100);
+  const safeArtist = String(track.artist || "Unknown artist").replace(/[\\/:*?"<>|]/g, "_").slice(0, 80);
+  const record = {
+    source,
+    title: String(track.title || "Untitled song").slice(0, 300),
+    artist: String(track.artist || "Unknown artist").slice(0, 300),
+    sourceUrl: String(track.sourceUrl || "").slice(0, 2000),
+    artwork: String(track.artwork || "").slice(0, 2000),
+    savedAt: new Date().toISOString(),
+    note: "Saved song details and source link. This file does not contain the audio recording."
+  };
+  if (!record.sourceUrl || !/^https:\/\//i.test(record.sourceUrl)) throw new Error("A valid original song link is required.");
+  const boundary = "cloudmusic_" + randomToken(12);
+  const metadata = { name: safeTitle + " - " + safeArtist + ".json", mimeType: "application/json", parents: [folder] };
+  const body = "--" + boundary + "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" +
+    JSON.stringify(metadata) + "\r\n--" + boundary + "\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n" +
+    JSON.stringify(record, null, 2) + "\r\n--" + boundary + "--";
+  const saved = await driveApi(env, accessToken, "/files?uploadType=multipart&fields=id,name,webViewLink", {
+    method: "POST",
+    headers: { "Content-Type": "multipart/related; boundary=" + boundary },
+    body
+  });
+  return { id: saved.id, name: saved.name, webViewLink: saved.webViewLink || "" };
+}
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
+
+    if (url.pathname.startsWith("/oauth/") || url.pathname === "/save") {
+      if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: oauthHeaders(request) });
+      if (!env.DRIVE_OAUTH || !env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+        return oauthJson(request, { error: "Drive OAuth is not configured. Add the DRIVE_OAUTH KV binding and Google OAuth secrets." }, 503);
+      }
+      if (url.pathname === "/oauth/start" && request.method === "GET") {
+        const state = randomToken();
+        await env.DRIVE_OAUTH.put("oauth_state:" + state, "pending", { expirationTtl: 600 });
+        const auth = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+        auth.search = new URLSearchParams({
+          client_id: env.GOOGLE_CLIENT_ID,
+          redirect_uri: DRIVE_REDIRECT_URI,
+          response_type: "code",
+          scope: DRIVE_SCOPE,
+          access_type: "offline",
+          prompt: "consent",
+          state
+        }).toString();
+        return Response.redirect(auth.toString(), 302);
+      }
+      if (url.pathname === "/oauth/callback" && request.method === "GET") {
+        const code = url.searchParams.get("code");
+        const state = url.searchParams.get("state");
+        const stateKey = state ? "oauth_state:" + state : "";
+        const validState = stateKey ? await env.DRIVE_OAUTH.get(stateKey) : null;
+        if (!code || !validState) return Response.redirect(DRIVE_APP_ORIGIN + "/?drive=error", 302);
+        await env.DRIVE_OAUTH.delete(stateKey);
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            code,
+            client_id: env.GOOGLE_CLIENT_ID,
+            client_secret: env.GOOGLE_CLIENT_SECRET,
+            redirect_uri: DRIVE_REDIRECT_URI,
+            grant_type: "authorization_code"
+          })
+        });
+        const tokens = await tokenResponse.json();
+        if (!tokenResponse.ok || !tokens.refresh_token) {
+          return Response.redirect(DRIVE_APP_ORIGIN + "/?drive=error", 302);
+        }
+        await env.DRIVE_OAUTH.put("drive:refresh_token", tokens.refresh_token);
+        const session = randomToken();
+        await env.DRIVE_OAUTH.put("session:" + session, "connected", { expirationTtl: 60 * 60 * 24 * 30 });
+        return new Response(null, {
+          status: 302,
+          headers: {
+            Location: DRIVE_APP_ORIGIN + "/?drive=connected",
+            "Set-Cookie": "cm_drive_session=" + session + "; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=2592000",
+            "Cache-Control": "no-store"
+          }
+        });
+      }
+      if (url.pathname === "/oauth/status" && request.method === "GET") {
+        return oauthJson(request, { connected: await driveSession(request, env) });
+      }
+      if (url.pathname === "/oauth/disconnect" && request.method === "POST") {
+        const session = cookieValue(request, "cm_drive_session");
+        if (session) await env.DRIVE_OAUTH.delete("session:" + session);
+        return new Response(JSON.stringify({ connected: false }), {
+          headers: { "Content-Type": "application/json", "Set-Cookie": "cm_drive_session=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0", ...oauthHeaders(request) }
+        });
+      }
+      if (url.pathname === "/save" && request.method === "POST") {
+        if (!(await driveSession(request, env))) return oauthJson(request, { error: "Connect Google Drive before saving songs." }, 401);
+        try {
+          const track = await request.json();
+          if (!track || !["Utop", "JioSaavn"].includes(track.source)) return oauthJson(request, { error: "Unsupported music source." }, 400);
+          const saved = await saveSongMetadata(env, track);
+          return oauthJson(request, { ok: true, saved });
+        } catch (error) {
+          return oauthJson(request, { error: error instanceof Error ? error.message : "Could not save song details." }, 502);
+        }
+      }
+      return oauthJson(request, { error: "Method not allowed or route not found." }, 404);
+    }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders() });
